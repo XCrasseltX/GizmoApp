@@ -16,7 +16,7 @@ public partial class ChatView : ContentPage
     {
         InitializeComponent();
 
-        DeleteChatCommand = new Command<string>(OnDeleteChat);
+        DeleteChatCommand = new Command<object>(OnDeleteChat);
         BindingContext = this;
 
         _haClient.ResponseReceived += OnResponse;
@@ -170,16 +170,77 @@ public partial class ChatView : ContentPage
         }
     }
 
-    private void OnDeleteChat(string chatId)
+    private void OnSwipeViewLoaded(object sender, EventArgs e)
     {
-        Debug.WriteLine($"DELETE aufgerufen für ChatId: {chatId}");
+        if (sender is SwipeView swipeView)
+        {
+            // 1. Holen der korrekten ChatSession von der SwipeView
+            if (swipeView.BindingContext is ChatSession session)
+            {
+                // 2. Das ContextFlyout finden
+                if (FlyoutBase.GetContextFlyout(swipeView) is MenuFlyout menuFlyout)
+                {
+                    // 3. Den "Löschen"-Button im Menü finden
+                    var deleteItem = menuFlyout
+                        .OfType<MenuFlyoutItem>()
+                        .FirstOrDefault(i => i.Text == "Löschen");
+
+                    if (deleteItem != null)
+                    {
+                        // 4. DER WICHTIGSTE SCHRITT:
+                        // Wir weisen dem Button manuell die ChatSession als
+                        // seinen BindingContext zu.
+                        deleteItem.BindingContext = session;
+                        Debug.WriteLine($" BindingContext für Löschen-Menü-Item gesetzt: {session.ChatId}");
+                    }
+                }
+            }
+        }
+    }
+
+    private void OnDeleteChatMenuItemClicked(object sender, EventArgs e)
+    {
+        // Der 'sender' ist das MenuFlyoutItem, das geklickt wurde.
+        if (sender is MenuFlyoutItem menuItem)
+        {
+            // Dieser BindingContext ist jetzt NICHT MEHR NULL, 
+            // dank der OnSwipeViewLoaded-Methode!
+            if (menuItem.BindingContext is ChatSession session)
+            {
+                // Erfolg! Rufe deine Lösch-Logik auf.
+                OnDeleteChat(session);
+            }
+            else
+            {
+                Debug.WriteLine($"Fehler: BindingContext des MenuFlyoutItem ist immer noch null oder falsch. (Ist: {menuItem.BindingContext?.GetType().Name ?? "null"})");
+            }
+        }
+    }
+
+    private void OnDeleteChat(object parameter)
+    {
+        Debug.WriteLine($" DELETE aufgerufen mit Parameter: {parameter?.GetType().Name ?? "null"}");
+        Debug.WriteLine($" Parameter Wert: {parameter}");
+
+        string? chatId = null;
+
+        // Parameter kann verschiedene Typen haben
+        if (parameter is string str)
+        {
+            chatId = str;
+        }
+        else if (parameter is ChatSession session)
+        {
+            chatId = session.ChatId;
+        }
 
         if (string.IsNullOrEmpty(chatId))
         {
-            Debug.WriteLine(" ChatId ist leer!");
+            Debug.WriteLine(" ChatId ist leer oder ungültig!");
             return;
         }
 
+        Debug.WriteLine($" Lösche Chat: {chatId}");
         _chatManager.DeleteChat(chatId);
 
         // Wenn der gelöschte Chat aktiv war, neuen Chat starten

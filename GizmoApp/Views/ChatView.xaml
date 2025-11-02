@@ -1,6 +1,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="GizmoApp.Views.ChatView">
+             x:Class="GizmoApp.Views.ChatView"
+             x:Name="ThisPage">
 
     <ContentPage.Background>
         <LinearGradientBrush StartPoint="0,1" EndPoint="1,0">
@@ -58,13 +59,12 @@
                                     SelectionChanged="OnChatSelected">
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
-                                <SwipeView>
+                                <SwipeView Loaded="OnSwipeViewLoaded">
                                     <!-- ✨ Rechtsklick-Menü für Desktop -->
                                     <FlyoutBase.ContextFlyout>
-                                        <MenuFlyout>
+                                        <MenuFlyout BindingContext="{Binding .}">
                                             <MenuFlyoutItem Text="Löschen" 
-                                      Command="{Binding Source={x:Reference ChatHistoryList}, Path=BindingContext.DeleteChatCommand}"
-                                      CommandParameter="{Binding ChatId}" />
+                                                            Clicked="OnDeleteChatMenuItemClicked" />
                                         </MenuFlyout>
                                     </FlyoutBase.ContextFlyout>
 

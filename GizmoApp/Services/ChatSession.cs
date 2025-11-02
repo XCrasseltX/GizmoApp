@@ -9,6 +9,8 @@ namespace GizmoApp.Services
     public class ChatSession
     {
         public string ChatId { get; set; } = string.Empty;
+        // HA Conversation ID (wird von Home Assistant vergeben)
+        public string? HaConversationId { get; set; } = null;
         public int MessageCounter { get; set; } = 1;
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime LastMessageAt { get; set; } = DateTime.Now;

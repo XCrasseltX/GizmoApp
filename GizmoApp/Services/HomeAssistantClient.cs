@@ -16,6 +16,8 @@ namespace GizmoApp.Services
         private WebsocketClient? _client;
         private ChatManager _chatManager => ChatManager.Instance;
 
+        private int _messageId = 1;
+
         private string? _url;
         private string? _token;
 
@@ -156,6 +158,8 @@ namespace GizmoApp.Services
             if (_client?.IsRunning == true)
                 return; // Bereits verbunden
 
+            _messageId = 1;
+
             var uri = new Uri($"{_url}/api/websocket");
             _client = new WebsocketClient(uri);
             _client.MessageReceived.Subscribe(msg =>
@@ -175,18 +179,32 @@ namespace GizmoApp.Services
                             typeElement.GetString() == "intent-end")
                         {
                             // Hier steckt die eigentliche Antwort drin
+                            // ✨ Conversation ID von HA holen und Antwort extrahieren
                             if (eventElement.TryGetProperty("data", out JsonElement data) &&
-                                data.TryGetProperty("intent_output", out JsonElement intentOutput) &&
-                                intentOutput.TryGetProperty("response", out JsonElement response) &&
-                                response.TryGetProperty("speech", out JsonElement speech) &&
-                                speech.TryGetProperty("plain", out JsonElement plain) &&
-                                plain.TryGetProperty("speech", out JsonElement speechText))
+                                data.TryGetProperty("intent_output", out JsonElement intentOutput))
                             {
-                                string answer = speechText.GetString() ?? "";
-                                Debug.WriteLine($"💬 Gizmo antwortet: {answer}");
+                                // Conversation ID speichern
+                                if (intentOutput.TryGetProperty("conversation_id", out JsonElement convId))
+                                {
+                                    string haConvId = convId.GetString() ?? "";
+                                    if (!string.IsNullOrEmpty(haConvId))
+                                    {
+                                        _chatManager.SetHaConversationId(haConvId);
+                                    }
+                                }
 
-                                // Callback an deine ChatView
-                                ResponseReceived?.Invoke(answer);
+                                // Antwort extrahieren
+                                if (intentOutput.TryGetProperty("response", out JsonElement response) &&
+                                    response.TryGetProperty("speech", out JsonElement speech) &&
+                                    speech.TryGetProperty("plain", out JsonElement plain) &&
+                                    plain.TryGetProperty("speech", out JsonElement speechText))
+                                {
+                                    string answer = speechText.GetString() ?? "";
+                                    Debug.WriteLine($"💬 Gizmo antwortet: {answer}");
+
+                                    // Callback an deine ChatView
+                                    ResponseReceived?.Invoke(answer);
+                                }
                             }
                         }
                     }
@@ -229,22 +247,42 @@ namespace GizmoApp.Services
 
             var chat = _chatManager.ActiveChat ?? _chatManager.StartNewChat();
 
-            var msg = new
+            // ✨ WICHTIG: Nur conversation_id senden, wenn HA bereits eine vergeben hat
+            object msg;
+
+            if (string.IsNullOrEmpty(chat.HaConversationId))
             {
-                id = chat.MessageCounter,
-                type = "assist_pipeline/run",
-                start_stage = "intent",
-                end_stage = "intent",
-                input = new { text },
-                pipeline = "01hnnbz7n3mszayy67m7q9g90p",
-                conversation_id = chat.ChatId
-            };
+                // Erste Nachricht - OHNE conversation_id
+                msg = new
+                {
+                    id = _messageId++,
+                    type = "assist_pipeline/run",
+                    start_stage = "intent",
+                    end_stage = "intent",
+                    input = new { text },
+                    pipeline = "01hnnbz7n3mszayy67m7q9g90p"
+                };
+                Debug.WriteLine($"📤 Erste Nachricht (ohne conversation_id)");
+            }
+            else
+            {
+                // Folgenachrichten - MIT conversation_id von HA
+                msg = new
+                {
+                    id = _messageId++,
+                    type = "assist_pipeline/run",
+                    start_stage = "intent",
+                    end_stage = "intent",
+                    input = new { text },
+                    pipeline = "01hnnbz7n3mszayy67m7q9g90p",
+                    conversation_id = chat.HaConversationId
+                };
+                Debug.WriteLine($"📤 Folgenachricht (mit conversation_id: {chat.HaConversationId})");
+            }
 
             string json = JsonSerializer.Serialize(msg);
             Debug.WriteLine($"zu HA -> {json}");
             _client.Send(json);
-
-            _chatManager.IncrementMessageId();
         }
 
     }

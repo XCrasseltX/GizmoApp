@@ -43,7 +43,8 @@ namespace GizmoApp.Services
                 ChatId = chatId, 
                 MessageCounter = 1,
                 CreatedAt = DateTime.Now,
-                LastMessageAt = DateTime.Now
+                LastMessageAt = DateTime.Now,
+                HaConversationId = null // Wird von HA vergeben
             };
 
             _chats[chatId] = chat;
@@ -67,6 +68,17 @@ namespace GizmoApp.Services
 
             Debug.WriteLine($"⚠️ Chat-ID {chatId} nicht gefunden!");
             return false;
+        }
+
+        // Wird aufgerufen, wenn HA eine Conversation ID zurückgibt
+        public void SetHaConversationId(string haConversationId)
+        {
+            if (_activeChat == null) return;
+
+            _activeChat.HaConversationId = haConversationId;
+            SaveChats();
+
+            Debug.WriteLine($"✅ HA Conversation ID gesetzt: {haConversationId}");
         }
 
         public void AddMessage(string text, bool isUser)

@@ -35,4 +35,6 @@ dotnet clean
 
 dotnet add package Websocket.client
 dotnet add package dotenv.net
+dotnet add package CommunityToolkit.Mvvm
+
 ```
