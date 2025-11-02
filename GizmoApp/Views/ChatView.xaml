@@ -1,0 +1,256 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="GizmoApp.Views.ChatView">
+
+    <ContentPage.Background>
+        <LinearGradientBrush StartPoint="0,1" EndPoint="1,0">
+            <GradientStop Color="{StaticResource Gray600}" Offset="0.0"/>
+            <GradientStop Color="{StaticResource Black}" Offset="0.2"/>
+            <GradientStop Color="{StaticResource GlassGreen}" Offset="0.35"/>
+            <GradientStop Color="{StaticResource Magenta}" Offset="0.5"/>
+            <GradientStop Color="{StaticResource GlassGreen}" Offset="0.65"/>
+            <GradientStop Color="{StaticResource Black}" Offset="0.8"/>
+            <GradientStop Color="{StaticResource Gray600}" Offset="1.0"/>
+        </LinearGradientBrush>
+    </ContentPage.Background>
+
+    <Grid x:Name="BaseGrid"
+          RowDefinitions="Auto,*,Auto"
+          ColumnDefinitions="250,*,200"
+          Padding="10">
+
+        <!-- Header -->
+        <Grid Grid.Row="0" Grid.ColumnSpan="3">
+            <Label Text="Gizmo Chat"
+                   Style="{StaticResource Headline}"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center"
+                   SemanticProperties.HeadingLevel="Level1" />
+        </Grid>
+
+        <!-- Chat History Sidebar (linke Seite) -->
+        <Border x:Name="ChatHistoryPanel"
+                Grid.Row="1"
+                Grid.Column="0"
+                Style="{StaticResource GlassPanel}"
+                Margin="0,20,10,10"
+                Padding="15"
+                IsVisible="True">
+
+            <Grid RowDefinitions="Auto,*,Auto">
+                <!-- Header mit "Neuer Chat" Button -->
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,15">
+                    <Label Text="Chat-Historie"
+                           Style="{StaticResource ChatHistoryTitle}"
+                           VerticalOptions="Center" />
+
+                    <Button Grid.Column="1"
+                            x:Name="NewChatButton"
+                            Text="+"
+                            Style="{StaticResource RoundIconButton}"
+                            Clicked="OnNewChatClicked" />
+                </Grid>
+
+                <!-- Chat Liste -->
+                <ScrollView Grid.Row="1">
+                    <CollectionView x:Name="ChatHistoryList"
+                                    SelectionMode="Single"
+                                    SelectionChanged="OnChatSelected">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <SwipeView>
+                                    <!-- ✨ Rechtsklick-Menü für Desktop -->
+                                    <FlyoutBase.ContextFlyout>
+                                        <MenuFlyout>
+                                            <MenuFlyoutItem Text="Löschen" 
+                                      Command="{Binding Source={x:Reference ChatHistoryList}, Path=BindingContext.DeleteChatCommand}"
+                                      CommandParameter="{Binding ChatId}" />
+                                        </MenuFlyout>
+                                    </FlyoutBase.ContextFlyout>
+
+                                    <Border Style="{StaticResource ChatHistoryItem}">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="10" />
+                                        </Border.StrokeShape>
+
+                                        <Grid RowDefinitions="Auto,Auto">
+                                            <Label Text="{Binding PreviewText}"
+                                                   Style="{StaticResource ChatPreviewText}"
+                                                   Margin="0,0,0,5" />
+
+                                            <Label Grid.Row="1"
+                                                   Text="{Binding LastMessageAt, StringFormat='{0:dd.MM.yyyy HH:mm}'}"
+                                                   Style="{StaticResource ChatTimestamp}" />
+                                        </Grid>
+                                    </Border>
+                                </SwipeView>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </ScrollView>
+            </Grid>
+        </Border>
+
+        <!-- Placeholder rechts (OHNE x:Name) -->
+        <StackLayout Grid.Row="1"
+                     Grid.Column="2"
+                     IsVisible="True" />
+
+        <!-- Button für Handy (OHNE x:Name, verwenden wir ChatHistoryButton) -->
+        <Button x:Name="ChatHistoryButton"
+                Style="{StaticResource GlassButton}"
+                Grid.Row="0"
+                Grid.Column="0"
+                Text="☰ Chats"
+                IsVisible="False"
+                HorizontalOptions="Start"
+                VerticalOptions="Center"
+                Clicked="OnToggleChatHistory" />
+
+        <!-- Chat History Overlay für Handy -->
+        <Border x:Name="ChatHistoryOverlay"
+                Grid.Row="0"
+                Grid.RowSpan="3"
+                Grid.Column="0"
+                Grid.ColumnSpan="3"
+                IsVisible="False"
+                BackgroundColor="#CC000000"
+                ZIndex="100">
+            <Border.GestureRecognizers>
+                <TapGestureRecognizer Tapped="OnToggleChatHistory" />
+            </Border.GestureRecognizers>
+
+            <Border MaximumWidthRequest="300"
+                    HorizontalOptions="Start"
+                    Style="{StaticResource GlassPanel}"
+                    Padding="15">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer />
+                </Border.GestureRecognizers>
+
+                <Grid RowDefinitions="Auto,*,Auto">
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,15">
+                        <Label Text="Chat-Historie"
+                               Style="{StaticResource ChatHistoryTitle}"
+                               VerticalOptions="Center" />
+
+                        <Button Grid.Column="1"
+                                Text="✕"
+                                Style="{StaticResource RoundIconButton}"
+                                Clicked="OnToggleChatHistory" />
+                    </Grid>
+
+                    <ScrollView Grid.Row="1">
+                        <CollectionView x:Name="ChatHistoryListMobile"
+                                        SelectionMode="Single"
+                                        SelectionChanged="OnChatSelectedMobile">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource ChatHistoryItem}">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="10" />
+                                        </Border.StrokeShape>
+
+                                        <Grid RowDefinitions="Auto,Auto">
+                                            <Label Text="{Binding PreviewText}"
+                                                   Style="{StaticResource ChatPreviewText}"
+                                                   Margin="0,0,0,5" />
+
+                                            <Label Grid.Row="1"
+                                                   Text="{Binding LastMessageAt, StringFormat='{0:dd.MM.yyyy HH:mm}'}"
+                                                   Style="{StaticResource ChatTimestamp}" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </ScrollView>
+
+                    <Button Grid.Row="2"
+                            Text="+ Neuer Chat"
+                            Style="{StaticResource GlassButton}"
+                            Margin="0,15,0,0"
+                            Clicked="OnNewChatClickedMobile" />
+                </Grid>
+            </Border>
+        </Border>
+
+        <!-- Chat Verlauf (Mitte) -->
+        <Border x:Name="ChatWindow"
+                Grid.Row="1"
+                Grid.Column="1"
+                Grid.ColumnSpan="1"
+                HorizontalOptions="Fill"
+                Margin="0,20,0,10"
+                Style="{StaticResource GlassPanel}">
+
+            <ScrollView>
+                <VerticalStackLayout x:Name="MessagesLayout" Spacing="10">
+                    <!-- Hier kommen später die Nachrichten rein -->
+                </VerticalStackLayout>
+            </ScrollView>
+        </Border>
+
+        <!-- Eingabebereich unten -->
+        <Grid Grid.Row="2"
+              Grid.ColumnSpan="3"
+              Padding="10"
+              ColumnDefinitions="*,Auto"
+              HorizontalOptions="Center"
+              MaximumWidthRequest="600">
+
+            <Editor x:Name="MessageEntry"
+                    Style="{StaticResource GlassEntry}"
+                    Placeholder="Schreibe Gizmo etwas..."
+                    Keyboard="Text"
+                    Completed="OnSendClicked"
+                    Margin="0,0,10,0"
+                    MaxLength="500"
+                    MinimumHeightRequest="30"
+                    MaximumHeightRequest="120"
+                    AutoSize="TextChanges"
+                    VerticalOptions="Start" />
+
+            <Button x:Name="ButtonSend"
+                    Style="{StaticResource GlassButton}"
+                    Text="Senden"
+                    Grid.Column="1"
+                    VerticalOptions="Start"
+                    Clicked="OnSendClicked" />
+        </Grid>
+    </Grid>
+
+    <!-- Responsive Layout Logik -->
+    <VisualStateManager.VisualStateGroups>
+        <VisualStateGroup x:Name="DeviceStates">
+            <!-- Handy -->
+            <VisualState x:Name="Narrow">
+                <VisualState.Setters>
+                    <Setter TargetName="ChatHistoryPanel" Property="IsVisible" Value="False" />
+                    <Setter TargetName="ChatHistoryButton" Property="IsVisible" Value="True" />
+
+                    <Setter TargetName="ChatWindow" Property="Grid.Column" Value="0" />
+                    <Setter TargetName="ChatWindow" Property="Grid.ColumnSpan" Value="3" />
+
+                    <Setter TargetName="MessageEntry" Property="WidthRequest" Value="200" />
+                    <Setter TargetName="ButtonSend" Property="WidthRequest" Value="80" />
+                </VisualState.Setters>
+            </VisualState>
+
+            <!-- Tablet / Desktop -->
+            <VisualState x:Name="Wide">
+                <VisualState.Setters>
+                    <Setter TargetName="ChatHistoryPanel" Property="IsVisible" Value="True" />
+                    <Setter TargetName="ChatHistoryButton" Property="IsVisible" Value="False" />
+                    <Setter TargetName="ChatHistoryOverlay" Property="IsVisible" Value="False" />
+
+                    <Setter TargetName="ChatWindow" Property="Grid.Column" Value="1" />
+                    <Setter TargetName="ChatWindow" Property="Grid.ColumnSpan" Value="1" />
+
+                    <Setter TargetName="MessageEntry" Property="WidthRequest" Value="400" />
+                    <Setter TargetName="ButtonSend" Property="WidthRequest" Value="100" />
+                </VisualState.Setters>
+            </VisualState>
+        </VisualStateGroup>
+    </VisualStateManager.VisualStateGroups>
+</ContentPage>
