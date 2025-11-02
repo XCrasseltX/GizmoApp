@@ -26,31 +26,11 @@ public partial class ChatView : ContentPage
         MessageEntry.Completed += (s, e) => OnSendClicked(s, e);
         MessageEntry.HandlerChanged += (s, e) =>
         {
-#if ANDROID
-            if (MessageEntry?.Handler?.PlatformView is Android.Widget.EditText nativeEditor)
-            {
-                nativeEditor.ImeOptions = Android.Views.InputMethods.ImeAction.Send;
-                nativeEditor.SetImeActionLabel("Senden", Android.Views.InputMethods.ImeAction.Send);
-                nativeEditor.EditorAction -= NativeEditor_EditorAction;
-                nativeEditor.EditorAction += NativeEditor_EditorAction;
-            }
-#endif
         };
 
         // Initial Chat-Liste laden
         RefreshChatList();
     }
-
-#if ANDROID
-    private void NativeEditor_EditorAction(object sender, Android.Widget.TextView.EditorActionEventArgs e)
-    {
-        if (e.ActionId == Android.Views.InputMethods.ImeAction.Send)
-        {
-            OnSendClicked(sender, EventArgs.Empty);
-            e.Handled = true;
-        }
-    }
-#endif
 
     protected override void OnSizeAllocated(double width, double height)
     {
@@ -84,12 +64,6 @@ public partial class ChatView : ContentPage
         // Event-Abo wieder entfernen, wenn die Seite geschlossen wird
         _haClient.ResponseReceived -= OnResponse;
         _chatManager.ChatsChanged -= OnChatsChanged;
-#if ANDROID
-        if (MessageEntry?.Handler?.PlatformView is Android.Widget.EditText nativeEditor)
-        {
-            nativeEditor.EditorAction -= NativeEditor_EditorAction;
-        }
-    #endif
     }
 
     protected override async void OnAppearing()
@@ -195,6 +169,21 @@ public partial class ChatView : ContentPage
                     }
                 }
             }
+        }
+    }
+
+    private void OnSwipeItemInvoked(object sender, EventArgs e)
+    {
+        Debug.WriteLine($" SwipeItem Invoked!");
+
+        if (sender is SwipeItem swipeItem && swipeItem.BindingContext is ChatSession session)
+        {
+            Debug.WriteLine($" Lösche Chat: {session.ChatId}");
+            OnDeleteChat(session);
+        }
+        else
+        {
+            Debug.WriteLine($" SwipeItem BindingContext ist: {(sender as SwipeItem)?.BindingContext?.GetType().Name ?? "null"}");
         }
     }
 
@@ -330,10 +319,13 @@ public partial class ChatView : ContentPage
                 editor.TextColor = textColor;
             }
 
+            double maxWidth = Width < 700 ? Width * 0.75 : 400;
+
             var border = new Border
             {
                 Style = loadedStyle,
-                Content = editor
+                Content = editor,
+                MaximumWidthRequest = Width
             };
 
             MessagesLayout.Add(border);

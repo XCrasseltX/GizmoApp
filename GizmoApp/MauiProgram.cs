@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Maui.LifecycleEvents;
+using CommunityToolkit.Maui;
 
 // Füge das Windows-Namespace hinzu, um auf die Fenstermethoden zuzugreifen
 #if WINDOWS
@@ -16,6 +17,7 @@ namespace GizmoApp
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
+                .UseMauiCommunityToolkit()
                 .ConfigureLifecycleEvents(events =>
                 {
 #if WINDOWS

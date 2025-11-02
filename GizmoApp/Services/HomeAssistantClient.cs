@@ -84,7 +84,7 @@ namespace GizmoApp.Services
             // 📦 3️⃣ Fallback: Embedded Resource laden
             var assembly = typeof(HomeAssistantClient).Assembly;
             var resourceName = assembly.GetManifestResourceNames()
-                .FirstOrDefault(n => n.EndsWith("config.json", StringComparison.OrdinalIgnoreCase));
+                .FirstOrDefault(n => n.Contains("config.json", StringComparison.OrdinalIgnoreCase));
 
             if (resourceName != null)
             {
@@ -92,10 +92,13 @@ namespace GizmoApp.Services
                 if (stream != null)
                 {
                     using var reader = new StreamReader(stream);
-                    var json = reader.ReadToEnd();
+                    string json = reader.ReadToEnd();
                     var data = JsonSerializer.Deserialize<Dictionary<string, string>>(json)!;
-                    url = data["HA_BASE_URL"];
-                    token = data["HA_TOKEN"];
+                    url = data.GetValueOrDefault("HA_BASE_URL", "");
+                    token = data.GetValueOrDefault("HA_TOKEN", "");
+
+                    if (string.IsNullOrWhiteSpace(url) || string.IsNullOrWhiteSpace(token))
+                        throw new Exception("❌ config.json enthält keine gültigen Werte.");
 
                     try
                     {
@@ -128,6 +131,9 @@ namespace GizmoApp.Services
             {
                 Debug.WriteLine($"⚠️ SecureStorage Fehler: {ex.Message}");
             }
+
+            Debug.WriteLine("📦 Resources found: " + string.Join(", ", assembly.GetManifestResourceNames()));
+
 
             throw new Exception("❌ Keine gültige HA-Konfiguration gefunden!");
         }

@@ -60,6 +60,13 @@
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
                                 <SwipeView Loaded="OnSwipeViewLoaded">
+                                    <SwipeView.RightItems>
+                                        <SwipeItems Mode="Execute">
+                                            <SwipeItem Text="Löschen"
+                                                       BackgroundColor="Red"
+                                                       Invoked="OnSwipeItemInvoked" />
+                                        </SwipeItems>
+                                    </SwipeView.RightItems>
                                     <!-- ✨ Rechtsklick-Menü für Desktop -->
                                     <FlyoutBase.ContextFlyout>
                                         <MenuFlyout BindingContext="{Binding .}">
