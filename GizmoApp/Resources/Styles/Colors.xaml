@@ -6,26 +6,32 @@
 
     <!-- Note: For Android please see also Platforms\Android\Resources\values\colors.xml -->
 
-    <Color x:Key="Primary">#da00ff</Color>
-    <Color x:Key="PrimaryText">#C8C8C8</Color>
-    <Color x:Key="PrimaryDark">#0040a3</Color>
-    <Color x:Key="PrimaryDarkText">#00ffeb</Color>
+    <Color x:Key="Primary">#512BD4</Color>
+    <Color x:Key="PrimaryDark">#ac99ea</Color>
+    <Color x:Key="PrimaryDarkText">#2bb7fb</Color>
+    <Color x:Key="PrimaryLightText">#001a26</Color>
     <Color x:Key="Secondary">#DFD8F7</Color>
-    <Color x:Key="SecondaryDarkText">#055b57</Color>
-    <Color x:Key="SecondaryText">#919191</Color>
-    <Color x:Key="Tertiary">#00ffeb</Color>
-
-    <Color x:Key="Darkmode">#212121</Color>
-    <Color x:Key="Whitemode">#ACACAC</Color>
-    <Color x:Key="TransparentWhite">#40FFFFFF</Color>
-    <Color x:Key="TransparentGray">#80141414</Color>
-    <Color x:Key="GlassGreen">#00342b</Color>
+    <Color x:Key="SecondaryLightText">#002611</Color>
+    <Color x:Key="SecondaryDarkText">#4aff9a</Color>
+    <Color x:Key="Tertiary">#2B0B98</Color>
 
     <Color x:Key="White">White</Color>
     <Color x:Key="Black">Black</Color>
-    <Color x:Key="Magenta">#240034</Color>
+    <Color x:Key="Magenta">#D600AA</Color>
     <Color x:Key="MidnightBlue">#190649</Color>
     <Color x:Key="OffBlack">#1f1f1f</Color>
+
+    <Color x:Key="TransBackground">#105de9fb</Color>
+
+    <Color x:Key="Background">#105de9fb</Color>
+    <Color x:Key="BackgroundDark">#20E1E1E1</Color>
+    <Color x:Key="BackgroundMiddle">#106cffd7</Color>
+    <Color x:Key="BackgroundLight">#20ffffff</Color>
+
+    <Color x:Key="BorderStroke">#9500ffba</Color>
+    <Color x:Key="TransWhite">#95E1E1E1</Color>
+    <Color x:Key="BorderstrokeLight">#956cffd7</Color>
+    <Color x:Key="BorderstrokeUltaLight">#ffffff</Color>
 
     <Color x:Key="Gray100">#E1E1E1</Color>
     <Color x:Key="Gray200">#C8C8C8</Color>

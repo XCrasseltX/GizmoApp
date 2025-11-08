@@ -1,0 +1,175 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="GizmoApp.MainPage">
+    
+    <Grid x:Name="BaseGrid">
+
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="AdaptiveLayouts">
+
+                <VisualState x:Name="Desktop">
+                    <VisualState.Setters>
+                        <!--Eingabefeld-->
+                        <Setter TargetName="TextBorder" Property="Grid.ColumnSpan" Value="1"/>
+                    </VisualState.Setters>
+                </VisualState>
+
+                <VisualState x:Name="Mobile">
+                    <VisualState.Setters>
+                        <!--Eingabefeld-->
+                        <Setter TargetName="TextBorder" Property="Grid.Column" Value="0"/>
+                        <Setter TargetName="TextBorder" Property="Grid.ColumnSpan" Value="3"/>
+                    </VisualState.Setters>
+                </VisualState>
+
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+        
+        <!--Hintergrund-->
+        <ScrollView x:Name="ChatScroll"
+                    Padding="10,120,10,120">
+
+            <VerticalStackLayout x:Name="ChatStack"
+                                 Spacing="8"
+                                 Padding="10">
+                <!--Hier kommen die chats rein-->
+
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!--Mittelschicht-->
+        <Grid RowDefinitions=".3*, *, .3*"
+              ColumnSpacing="10"
+              InputTransparent="True"
+              CascadeInputTransparent="False">
+
+            <Grid Grid.Row="1"
+                  InputTransparent="True">
+                
+            </Grid>
+
+            <Grid Grid.Row="0">
+                
+                <Grid.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="{StaticResource Black}" Offset="0.0"/>
+                        <GradientStop Color="#80000000" Offset="0.5"/>
+                        <GradientStop Color="Transparent" Offset="1.0"/>
+                    </LinearGradientBrush>
+                </Grid.Background>
+
+            </Grid>
+
+            <Grid Grid.Row="3">
+                
+                <Grid.Background>
+                    <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
+                        <GradientStop Color="{StaticResource Black}" Offset="0.0"/>
+                        <GradientStop Color="#80000000" Offset="0.5"/>
+                        <GradientStop Color="Transparent" Offset="1.0"/>
+                    </LinearGradientBrush>
+                </Grid.Background>
+
+            </Grid>
+        </Grid>
+        
+        <!--Vordergrund-->
+        <Grid ColumnDefinitions=".3*, *, .3*"
+              RowDefinitions=".3*, *, Auto"
+              ColumnSpacing="10"
+              RowSpacing="10"
+              Padding="20"
+              InputTransparent="True"
+              CascadeInputTransparent="False">
+            
+
+
+            <Border x:Name="ToastBorder"
+                    Opacity="0"
+                    VerticalOptions="Start"
+                    Margin="40"
+                    HeightRequest="50"
+                    Grid.Column="1"
+                    Grid.Row="0">
+
+                <Label x:Name="ToastLabel"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center"/>
+
+            </Border>
+
+            <Border Grid.Column="0"
+                    VerticalOptions="Start"
+                    HorizontalOptions="Start"
+                    Style="{StaticResource ButtonBorder}"
+                    InputTransparent="False">
+
+                <Button Text="Chats"
+                        HorizontalOptions="Fill"
+                        VerticalOptions="Fill"
+                        InputTransparent="False"/>
+                
+            </Border>
+
+            <Image x:Name="BotImage"
+                   Opacity="1"
+                   Grid.Column="1"
+                   Grid.Row="0"
+                   BackgroundColor="Transparent"
+                   Source="dotnet_bot.png"/>
+
+            <Label Grid.Column="1"
+                   Grid.Row="0"
+                   Text="Gizmo"
+                   Style="{StaticResource Headline}"
+                   VerticalOptions="End"
+                   MinimumWidthRequest="100"/>
+
+            <Border x:Name="TextBorder"
+                    Grid.Column="1"
+                    Grid.Row="2"
+                    InputTransparent="False">
+
+                <Grid Grid.Row="2"
+                      Grid.Column="1"
+                      ColumnDefinitions="*, 100"
+                      Padding="10"
+                      ColumnSpacing="10"
+                      InputTransparent="False">
+
+                    <Border Grid.Column="1"
+                            StrokeThickness="1"
+                            Style="{StaticResource ButtonBorder}"
+                            InputTransparent="False">
+                        
+                        <Button x:Name="SendButton"
+                                Text="Send"
+                                HorizontalOptions="Fill"
+                                VerticalOptions="Fill"
+                                Clicked="OnSendMessage"
+                                InputTransparent="False"/>
+
+                    </Border>
+
+                    <Border Grid.Column="0"
+                            StrokeThickness="1"
+                            Style="{StaticResource ButtonBorder}"
+                            InputTransparent="False">
+                        
+                        <Editor x:Name="InputEditor"
+                                AutoSize="TextChanges"
+                                MaxLength="1000"
+                                MaximumHeightRequest="150"
+                                HorizontalOptions="Fill"
+                                VerticalOptions="Fill"
+                                Placeholder=" Schreibe etwas..."
+                                InputTransparent="False"/>
+                    </Border>
+
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</ContentPage>
