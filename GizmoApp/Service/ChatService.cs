@@ -17,6 +17,8 @@ namespace GizmoApp.Service
         public event Action? OnStopThinking;
         public event Action<string>? OnToast;
 
+        string? conversationId = ChatManager.GetActiveChat()?.ConversationId;
+
         public ChatService(HomeAssistService ha)
         {
             _ha = ha;
@@ -38,7 +40,8 @@ namespace GizmoApp.Service
                 {
                     text = text
                 },
-                pipeline = "01hnnbz7n3mszayy67m7q9g90p"
+                pipeline = "01hnnbz7n3mszayy67m7q9g90p",
+                conversation_id = conversationId
             };
 
             string json = JsonSerializer.Serialize(payload);

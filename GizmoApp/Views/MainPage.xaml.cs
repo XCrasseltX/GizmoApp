@@ -6,7 +6,7 @@ using Microsoft.Maui.Controls;
 using System;
 using System.Diagnostics;
 
-namespace GizmoApp
+namespace GizmoApp.Views
 {
     public partial class MainPage : ContentPage
     {
@@ -283,6 +283,11 @@ namespace GizmoApp
             }
             _lastWidth = Width;
 
+        }
+
+        private async void OnChatButtonClicked(object sender, EventArgs e)
+        {
+            await Navigation.PushModalAsync(new ChatSelectorPage());
         }
     }
 }

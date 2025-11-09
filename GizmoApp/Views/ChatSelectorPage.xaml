@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="GizmoApp.Views.ChatSelectorPage"
+             Title="ChatSelectorPage"
+             BackgroundColor="#80000000">
+    <Grid ColumnDefinitions=".4*, .6*"
+          RowDefinitions="Auto, *, Auto"
+          Margin="0, 40">
+        
+    
+        <Border Padding="10">
+            <VerticalStackLayout>
+
+                <Border Style="{StaticResource ButtonBorder}"
+                        Grid.Column="0"
+                        Grid.Row="0">
+                    
+                    <Button Text="Settings"
+                            Clicked="OnSettingsClicked"/>
+                </Border>
+                
+
+                <ScrollView Grid.Row="1"
+                            Grid.Column="0"
+                            Margin="0, 15, 0, 15">
+                    <VerticalStackLayout x:Name="ChatListContainer"
+                                         Spacing="10">
+                    
+                    </VerticalStackLayout>
+                </ScrollView>
+
+                <Border Style="{StaticResource ButtonBorder}"
+                        Grid.Column="0"
+                        Grid.Row="2">
+
+                        <Button Text="Back"
+                            Clicked="OnBackClicked"/>
+                </Border>
+            </VerticalStackLayout>
+    
+        </Border>
+    </Grid>
+</ContentPage>

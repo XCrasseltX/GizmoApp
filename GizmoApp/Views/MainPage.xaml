@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="GizmoApp.MainPage">
+             x:Class="GizmoApp.Views.MainPage">
     
     <Grid x:Name="BaseGrid">
 
@@ -107,6 +107,7 @@
                     InputTransparent="False">
 
                 <Button Text="Chats"
+                        Clicked="OnChatButtonClicked"
                         HorizontalOptions="Fill"
                         VerticalOptions="Fill"
                         InputTransparent="False"/>
