@@ -1,7 +1,12 @@
-﻿namespace GizmoApp
+﻿
+using GizmoApp.Service;
+
+namespace GizmoApp
 {
     public partial class App : Application
     {
+        
+
         public App()
         {
             InitializeComponent();

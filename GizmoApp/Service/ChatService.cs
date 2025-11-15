@@ -17,7 +17,7 @@ namespace GizmoApp.Service
         public event Action? OnStopThinking;
         public event Action<string>? OnToast;
 
-        string? conversationId = ChatManager.GetActiveChat()?.ConversationId;
+        private string? ConversationId => ChatManager.GetActiveChat()?.ConversationId;
 
         public ChatService(HomeAssistService ha)
         {
@@ -30,25 +30,36 @@ namespace GizmoApp.Service
             await _ha.EnsureConnectedAsync();
             OnChatMessage?.Invoke(text, true);
 
+            // Immer sicherstellen, dass es einen aktiven Chat gibt
+            var active = ChatManager.GetActiveChat() ?? ChatManager.EnsureActiveChat();
+            active.Messages.Add(new Models.ChatMessage
+            {
+                Role = "user",
+                Text = text,
+                Timestamp = DateTime.UtcNow
+            });
+            await ChatManager.SaveToLocalAsync();
+
             var payload = new
             {
                 id = _msgId++,
                 type = "assist_pipeline/run",
-                start_stage ="intent",
+                start_stage = "intent",
                 end_stage = "intent",
                 input = new
                 {
                     text = text
                 },
                 pipeline = "01hnnbz7n3mszayy67m7q9g90p",
-                conversation_id = conversationId
+                // WICHTIG: conversation_id vom aktiven Chat nehmen
+                conversation_id = active.ConversationId
             };
 
             string json = JsonSerializer.Serialize(payload);
             await _ha.SendAsync(json);
         }
 
-        private void HandleIncoming(string json)
+        private async void HandleIncoming(string json)
         {
             try
             {
@@ -110,6 +121,16 @@ namespace GizmoApp.Service
                     {
                         string msg = spoken.GetString() ?? "";
                         OnChatMessage?.Invoke(msg, false);
+                        // Immer einen aktiven Chat sicherstellen
+                        var active = ChatManager.GetActiveChat() ?? ChatManager.EnsureActiveChat();
+
+                        active.Messages.Add(new Models.ChatMessage
+                        {
+                            Role = "assistant",
+                            Text = msg,
+                            Timestamp = DateTime.UtcNow
+                        });
+                        await ChatManager.SaveToLocalAsync();
 
                         // 🧠 Animation stoppen, Erfolg anzeigen
                         MainThread.BeginInvokeOnMainThread(() =>
@@ -117,6 +138,19 @@ namespace GizmoApp.Service
                             OnStopThinking?.Invoke();
                             OnToast?.Invoke("✅ Antwort empfangen");
                         });
+                    }
+                
+                    if (eventProp.TryGetProperty("data", out var data1) &&
+                        data1.TryGetProperty("conversation_id", out var convIdProp))
+                    {
+                        string convId = convIdProp.GetString() ?? "";
+                        var active2 = ChatManager.GetActiveChat() ?? ChatManager.EnsureActiveChat();
+                        if (!string.IsNullOrWhiteSpace(convId))
+                        {
+                            active2.ConversationId = convId;
+                            await ChatManager.SaveToLocalAsync();
+                            Debug.WriteLine($"💾 ConversationId updated: {convId}");
+                        }
                     }
                 }
             }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using GizmoApp.Service;
 
 namespace GizmoApp
 {
@@ -18,6 +19,14 @@ namespace GizmoApp
 
 #if DEBUG
     		builder.Logging.AddDebug();
+#endif
+
+            // Plattformimplementierungen von INetworkInfoProvider registrieren
+#if ANDROID
+            builder.Services.AddSingleton<INetworkInfoProvider, GizmoApp.Platforms.Android.NetworkInfoProvider>();
+#endif
+#if WINDOWS
+            builder.Services.AddSingleton<INetworkInfoProvider, GizmoApp.Platforms.Windows.NetworkInfoProvider>();
 #endif
 
             return builder.Build();

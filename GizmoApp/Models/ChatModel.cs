@@ -12,5 +12,6 @@ namespace GizmoApp.Models
         public string Title { get; set; } = "Neuer Chat";
         public string? ConversationId { get; set; }
         public DateTime LastUsed { get; set; } = DateTime.UtcNow;
+        public List<ChatMessage> Messages { get; set; } = new();
     }
 }

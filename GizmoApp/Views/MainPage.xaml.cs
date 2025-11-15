@@ -12,6 +12,8 @@ namespace GizmoApp.Views
     {
         //Variablen
 
+        private System.Timers.Timer? _chatSyncTimer;
+
         //Configuration
         private AppConfig _config;
         private HomeAssistService _ha;
@@ -29,14 +31,49 @@ namespace GizmoApp.Views
 
             //Rezize holen
             SizeChanged += OnSizeChanged;
-            //Config laden
-            _ = LoadConfig();
-            if(_config == null || _chat == null || _ha == null)
-            {
-                throw new Exception("[Error] _config, _ha oder _chat kann nicht geladen werden...");
-            }
+            
         }
+        protected override async void OnAppearing()
+        {
+            base.OnAppearing();
 
+            await LoadConfig();
+
+            if (_config == null || _chat == null || _ha == null)
+            {
+                await DisplayAlert("Fehler", "Konfiguration konnte nicht geladen werden.", "OK");
+                return;
+            }
+
+            // 🔥 1) Lokale Chats laden (sehr wichtig!)
+            await ChatManager.LoadFromLocalAsync();
+
+            // 🔥 2) Aktiven Chat holen oder erzeugen
+            var chat = ChatManager.GetActiveChat() ?? ChatManager.EnsureActiveChat();
+
+            // 🔥 3) ConversationId ist bereits in der lokalen Datei enthalten
+            //     Wenn sie dort NULL war, DANN ist es korrekt, dass HA eine neue erzeugt.
+
+            ChatManager.SetActiveChat(chat.ChatId);
+
+            // 🔥 4) Nachrichten anzeigen
+            ChatStack.Children.Clear();
+            foreach (var msg in chat.Messages)
+            {
+                AddMassageToChat(msg.Text, msg.Role == "user");
+            }
+
+            await ScrollToBottom();
+        }
+        private async Task ScrollToBottom()
+        {
+            try
+            {
+                await Task.Delay(50); // UI muss die Größe erst berechnen
+                await ChatScroll.ScrollToAsync(ChatStack, ScrollToPosition.End, true);
+            }
+            catch { }
+        }
         private void OnChatScrolled(object sender, ScrolledEventArgs e)
         {
             double offset = e.ScrollY * 0.05;
@@ -100,9 +137,63 @@ namespace GizmoApp.Views
             }
         }
 
+        private void StartChatSyncTimer()
+        {
+            if (_chatSyncTimer != null)
+                return; // nicht mehrfach starten
+
+            _chatSyncTimer = new()
+            {
+                Interval = TimeSpan.FromHours(2).TotalMilliseconds,
+                AutoReset = true,
+                Enabled = true
+            };
+
+            _chatSyncTimer.Elapsed += async (s, e) =>
+            {
+                if (NetworkHelper.IsInHomeNetwork())
+                {
+                    // redis sync geht nicht!!!!
+                    bool success = await ChatManager.LoadFromRedisAsync();
+                    await ChatManager.SaveToLocalAsync();
+
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        if (success)
+                            ShowToast("✅ Chats synchronisiert");
+                        else
+                            ShowToast("⚠️ Sync fehlgeschlagen", true);
+                    });
+                }
+                else
+                {
+                    Debug.WriteLine("Nicht im Heimnetz – Sync übersprungen");
+                }
+            };
+
+            _chatSyncTimer.Start();
+        }
+
         // Configuration laden
         private async Task LoadConfig()
         {
+            await ChatManager.LoadFromLocalAsync();
+
+            if (NetworkHelper.IsInHomeNetwork())
+            {
+                System.Diagnostics.Debug.WriteLine("✅ Im Heimnetz");
+                bool success = await ChatManager.LoadFromRedisAsync(); // sofortiger Sync
+                await ChatManager.SaveToLocalAsync();
+                if (success)
+                    StartChatSyncTimer();
+                else
+                    StartChatSyncTimer(); // optional trotzdem Timer starten
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("⚠️ Nicht im Heimnetz");
+            }
+
             try
             {
                 _config = await ConfigService.LoadConfigAsync();
@@ -244,7 +335,7 @@ namespace GizmoApp.Views
 
             // 👇 automatisch ans Ende scrollen (unterste Nachricht im Sichtfeld)
             await Task.Delay(50); // kurz warten, bis Layout aktualisiert ist
-            await ChatScroll.ScrollToAsync(ChatStack, ScrollToPosition.End, true);
+            await ScrollToBottom();
         }
         private double _lastWidth;
 
